@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import Foundation
 import WebRTC
 
 class ViewController: UIViewController {
@@ -39,6 +40,61 @@ class ViewController: UIViewController {
     }
     
     @IBAction func SendFile(_ sender: Any) {
+        let bytes = getArrayOfBytesFromImage(imageData: self.imagePreview.image!.pngData()! as NSData)
+        let data: NSData = NSData(bytes: bytes, length: bytes.count)
+        
+        let dataLen = (data as NSData).length
+        let fullChunks = Int(dataLen / 1024) // 1 Kbyte
+        let totalChunks = fullChunks + (dataLen % 1024 != 0 ? 1 : 0)
+            
+        var chunks:[Data] = [Data]()
+        
+        for chunkCounter in 0..<totalChunks
+        {
+            var chunk:Data
+            
+            let chunkBase = chunkCounter * 1024
+            var diff = 1024
+            if chunkCounter == totalChunks - 1
+            {
+                diff = dataLen - chunkBase
+            }
+                
+            let range: NSRange = NSRange(chunkBase ..< (chunkBase + diff))
+            chunk = data.subdata(with: range)
+                
+            chunks.append(chunk)
+        }
+            
+        // Send chunks as you want
+        print("data length is")
+        print(dataLen)
+        
+        print("Number of Full chunks are")
+        print(fullChunks)
+        
+        debugPrint(chunks)
+    }
+    
+    func getArrayOfBytesFromImage(imageData:NSData) -> Array<UInt8>
+    {
+
+      // the number of elements:
+      let count = imageData.length / MemoryLayout<Int8>.size
+
+      // create array of appropriate length:
+      var bytes = [UInt8](repeating: 0, count: count)
+
+      // copy bytes into array
+      imageData.getBytes(&bytes, length:count * MemoryLayout<Int8>.size)
+
+      var byteArray:Array = Array<UInt8>()
+
+      for i in 0 ..< count {
+        byteArray.append(bytes[i])
+      }
+
+      return byteArray
     }
 }
 
