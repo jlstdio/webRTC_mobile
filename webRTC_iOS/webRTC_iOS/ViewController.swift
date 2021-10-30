@@ -46,15 +46,16 @@ class ViewController: UIViewController {
         let dataLen = (data as NSData).length
         let fullChunks = Int(dataLen / 1024) // 1 Kbyte
         let totalChunks = fullChunks + (dataLen % 1024 != 0 ? 1 : 0)
-            
-        var chunks:[Data] = [Data]()
+        var diff = 1024 // (preset) max size of each chunk
         
+        var chunks:[Data] = [Data]() // chunks: we will use this
+        
+        // split data as 'diff' save it to 'chunks'
         for chunkCounter in 0..<totalChunks
         {
             var chunk:Data
             
             let chunkBase = chunkCounter * 1024
-            var diff = 1024
             if chunkCounter == totalChunks - 1
             {
                 diff = dataLen - chunkBase
@@ -66,13 +67,14 @@ class ViewController: UIViewController {
             chunks.append(chunk)
         }
             
-        // Send chunks as you want
+        // whole data length
         print("data length is")
         print(dataLen)
         
         print("Number of Full chunks are")
         print(fullChunks)
         
+        // splited data
         debugPrint(chunks)
     }
     
