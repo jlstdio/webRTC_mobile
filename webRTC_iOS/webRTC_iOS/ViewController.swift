@@ -6,14 +6,132 @@
 //
 
 import UIKit
+import AVFoundation
+import WebRTC
 
 class ViewController: UIViewController {
-
+    
+    private let imagePicker = UIImagePickerController()
+    
+    private let signalClient = SignalingClient()
+    private let webRTCClient = WebRTCClient(iceServers: Config.default.webRTCIceServers)
+    
+    private var currentPerson = ""
+    private var oppositePerson = ""
+    
+    @IBOutlet weak var myName: UITextField!
+    @IBOutlet weak var destinationName: UITextField!
+    @IBOutlet weak var imagePreview: UIImageView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        self.webRTCClient.delegate = self
+        self.signalClient.delegate = self
+        
+        self.imagePicker.sourceType = .photoLibrary // 앨범에서 가져옴
+        self.imagePicker.allowsEditing = true // 수정 가능 여부
+        self.imagePicker.delegate = self // picker delegate
     }
-
-
+    
+    @IBAction func ImagePick(_ sender: Any) {
+        self.present(self.imagePicker, animated: true)
+    }
+    
+    @IBAction func SendFile(_ sender: Any) {
+    }
 }
 
+extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        var newImage: UIImage? = nil // update 할 이미지
+        
+        if let possibleImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
+            newImage = possibleImage // 수정된 이미지가 있을 경우
+        } else if let possibleImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+            newImage = possibleImage // 원본 이미지가 있을 경우
+        }
+        
+        self.imagePreview.image = newImage // 받아온 이미지를 update
+        picker.dismiss(animated: true, completion: nil) // picker를 닫아줌
+        
+    }
+}
+
+
+extension ViewController: SignalClientDelegate {
+  func signalClientDidConnect(_ signalClient: SignalingClient) {
+    //self.signalingConnected = true
+  }
+  
+  func signalClientDidDisconnect(_ signalClient: SignalingClient) {
+    //self.signalingConnected = false
+  }
+  
+  func signalClient(_ signalClient: SignalingClient, didReceiveRemoteSdp sdp: RTCSessionDescription) {
+    print("Received remote sdp")
+    self.webRTCClient.set(remoteSdp: sdp) { (error) in
+      //self.hasRemoteSdp = true
+    }
+  }
+  
+  func signalClient(_ signalClient: SignalingClient, didReceiveCandidate candidate: RTCIceCandidate) {
+    print("Received remote candidate")
+      //self.remoteCandidateCount += 1
+      self.webRTCClient.set(remoteCandidate: candidate)
+  }
+}
+
+extension ViewController: WebRTCClientDelegate {
+  
+  func webRTCClient(_ client: WebRTCClient, didDiscoverLocalCandidate candidate: RTCIceCandidate) {
+    print("discovered local candidate")
+    //self.localCandidateCount += 1
+    self.signalClient.send(candidate: candidate, to: self.oppositePerson)
+  }
+  
+  func webRTCClient(_ client: WebRTCClient, didChangeConnectionState state: RTCIceConnectionState) {
+      /*
+    let textColor: UIColor
+    switch state {
+    case .connected, .completed:
+      textColor = .green
+    case .disconnected:
+      textColor = .orange
+    case .failed, .closed:
+      textColor = .red
+    case .new, .checking, .count:
+      textColor = .black
+    @unknown default:
+      textColor = .black
+    }
+    DispatchQueue.main.async {
+      //self.webRTCStatusLabel?.text = state.description.capitalized
+      //self.webRTCStatusLabel?.textColor = textColor
+    }*/
+  }
+  
+  func webRTCClient(_ client: WebRTCClient, didReceiveData data: Data) {
+    DispatchQueue.main.async {
+      let message = String(data: data, encoding: .utf8) ?? "(Binary: \(data.count) bytes)"
+      let alert = UIAlertController(title: "Message from WebRTC", message: message, preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+      self.present(alert, animated: true, completion: nil)
+    }
+  }
+}
+
+extension ViewController: UITextFieldDelegate {
+  
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == myName {
+            destinationName.becomeFirstResponder()
+        }
+        else {
+            destinationName.resignFirstResponder()
+        }
+        return true
+    }
+}
