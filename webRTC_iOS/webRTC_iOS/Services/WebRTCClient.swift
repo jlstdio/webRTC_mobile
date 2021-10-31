@@ -66,7 +66,7 @@ final class WebRTCClient: NSObject {
       
     self.peerConnection = WebRTCClient.factory.peerConnection(with: config, constraints: constraints, delegate: self)
     
-    //self.createMediaSenders()
+    self.createMediaSenders()
     //self.configureAudioSession()
   }
   
@@ -156,26 +156,26 @@ final class WebRTCClient: NSObject {
   }
   */
     
-    /*
+    
   private func createMediaSenders() {
-    let streamId = "stream"
+    //let streamId = "stream"
     
     // Audio
     //let audioTrack = self.createAudioTrack()
     //self.peerConnection!.add(audioTrack, streamIds: [streamId])
     
     // Video
-    let videoTrack = self.createVideoTrack()
-    self.localVideoTrack = videoTrack
-    self.peerConnection!.add(videoTrack, streamIds: [streamId])
-    self.remoteVideoTrack = self.peerConnection!.transceivers.first { $0.mediaType == .video }?.receiver.track as? RTCVideoTrack
+    //let videoTrack = self.createVideoTrack()
+    //self.localVideoTrack = videoTrack
+    //self.peerConnection!.add(videoTrack, streamIds: [streamId])
+    //self.remoteVideoTrack = self.peerConnection!.transceivers.first { $0.mediaType == .video }?.receiver.track as? RTCVideoTrack
     
     // Data
     if let dataChannel = createDataChannel() {
       dataChannel.delegate = self
       self.localDataChannel = dataChannel
     }
-  }*/
+  }
   /*
   private func createAudioTrack() -> RTCAudioTrack {
     let audioConstrains = RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)

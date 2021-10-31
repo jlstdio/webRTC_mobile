@@ -99,16 +99,16 @@
                                 </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gLk-Zy-qm8">
-                                <rect key="frame" x="20" y="217" width="374" height="538"/>
+                                <rect key="frame" x="20" y="217" width="374" height="460"/>
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2Rl-L7-XkF">
-                                <rect key="frame" x="169.5" y="802" width="75" height="31"/>
+                                <rect key="frame" x="147" y="724" width="120" height="31"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="31" id="D5K-2l-n1p"/>
-                                    <constraint firstAttribute="width" constant="75" id="ttA-hs-h91"/>
+                                    <constraint firstAttribute="width" constant="120" id="Mwv-RJ-33e"/>
+                                    <constraint firstAttribute="height" constant="31" id="ol1-ih-LM5"/>
                                 </constraints>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Receive"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Receiver"/>
                                 <connections>
                                     <action selector="ReceiveFile:" destination="BYZ-38-t0r" eventType="touchUpInside" id="y8T-CN-TPm"/>
                                 </connections>
@@ -122,14 +122,38 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5SM-aC-97t">
-                                <rect key="frame" x="173.5" y="763" width="67" height="31"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ySU-cU-ZpK">
+                                <rect key="frame" x="139.5" y="802" width="135" height="31"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="31" id="Q9e-X1-Gu6"/>
-                                    <constraint firstAttribute="width" constant="67" id="wj9-uf-JiZ"/>
+                                    <constraint firstAttribute="width" constant="135" id="Tit-ag-DxI"/>
+                                    <constraint firstAttribute="height" constant="31" id="qZU-dx-bUk"/>
                                 </constraints>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Send"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Abort"/>
+                                <connections>
+                                    <action selector="Abort:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ub7-oB-iOT"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="NWO-2m-onk">
+                                <rect key="frame" x="178" y="763" width="58" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="58" id="5zF-b0-UsT"/>
+                                    <constraint firstAttribute="height" constant="31" id="w6p-n0-1eA"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="gray" title="Send"/>
+                                <connections>
+                                    <action selector="SendData:" destination="BYZ-38-t0r" eventType="touchUpInside" id="EVV-yX-4a5"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5SM-aC-97t">
+                                <rect key="frame" x="123.5" y="685" width="167" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="31" id="fTb-FQ-9li"/>
+                                    <constraint firstAttribute="width" constant="167" id="nFC-df-VHa"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Sender"/>
                                 <connections>
                                     <action selector="SendFile:" destination="BYZ-38-t0r" eventType="touchUpInside" id="pNt-tK-OY2"/>
                                 </connections>
@@ -140,23 +164,27 @@
                         <constraints>
                             <constraint firstItem="J9q-9x-n5p" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="0Mi-tC-ES1"/>
                             <constraint firstItem="BQp-vw-cLn" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="43o-aj-Vzx"/>
+                            <constraint firstItem="2Rl-L7-XkF" firstAttribute="top" secondItem="5SM-aC-97t" secondAttribute="bottom" constant="8" symbolic="YES" id="5K9-r1-yZV"/>
+                            <constraint firstItem="5SM-aC-97t" firstAttribute="top" secondItem="gLk-Zy-qm8" secondAttribute="bottom" constant="8" symbolic="YES" id="5hE-qa-Dgo"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="J9q-9x-n5p" secondAttribute="trailing" constant="20" id="7NW-JV-JYn"/>
-                            <constraint firstItem="BQp-vw-cLn" firstAttribute="top" secondItem="2Rl-L7-XkF" secondAttribute="bottom" constant="8" symbolic="YES" id="BSM-hm-0Q4"/>
+                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="Agh-Op-lnp"/>
+                            <constraint firstItem="2Rl-L7-XkF" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="BVU-uM-GyU"/>
                             <constraint firstItem="1sj-V6-faN" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="CrO-Sy-mqt"/>
                             <constraint firstItem="wZR-i8-UvN" firstAttribute="top" secondItem="J9q-9x-n5p" secondAttribute="bottom" constant="8" symbolic="YES" id="GHc-Mc-Pdf"/>
-                            <constraint firstItem="5SM-aC-97t" firstAttribute="top" secondItem="gLk-Zy-qm8" secondAttribute="bottom" constant="8" symbolic="YES" id="ISD-lh-6aL"/>
-                            <constraint firstItem="5SM-aC-97t" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="PGk-wm-NU8"/>
-                            <constraint firstItem="2Rl-L7-XkF" firstAttribute="top" secondItem="5SM-aC-97t" secondAttribute="bottom" constant="8" symbolic="YES" id="Pzu-K2-7dI"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gLk-Zy-qm8" secondAttribute="trailing" constant="20" id="WU2-Fs-ywX"/>
-                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="X1k-nV-K9y"/>
+                            <constraint firstItem="BQp-vw-cLn" firstAttribute="top" secondItem="ySU-cU-ZpK" secondAttribute="bottom" constant="8" symbolic="YES" id="Gha-JP-pyf"/>
+                            <constraint firstItem="5SM-aC-97t" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="J0z-XR-0XB"/>
+                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="top" secondItem="wZR-i8-UvN" secondAttribute="bottom" constant="8" symbolic="YES" id="N9D-jG-c3D"/>
+                            <constraint firstItem="ySU-cU-ZpK" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="QnV-QX-X5q"/>
+                            <constraint firstItem="ySU-cU-ZpK" firstAttribute="top" secondItem="NWO-2m-onk" secondAttribute="bottom" constant="8" symbolic="YES" id="QuE-4I-PcU"/>
+                            <constraint firstItem="NWO-2m-onk" firstAttribute="top" secondItem="2Rl-L7-XkF" secondAttribute="bottom" constant="8" symbolic="YES" id="iG0-US-z2p"/>
                             <constraint firstItem="wZR-i8-UvN" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="jtJ-az-3hW"/>
                             <constraint firstItem="J9q-9x-n5p" firstAttribute="top" secondItem="1sj-V6-faN" secondAttribute="bottom" constant="8" symbolic="YES" id="mw0-lf-GHg"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gLk-Zy-qm8" secondAttribute="trailing" constant="20" id="nmf-Vp-SNq"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="BQp-vw-cLn" secondAttribute="trailing" constant="20" id="oIo-vx-mPA"/>
-                            <constraint firstItem="2Rl-L7-XkF" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="qh1-wl-PHK"/>
                             <constraint firstItem="BQp-vw-cLn" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="tO1-8p-5is"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="1sj-V6-faN" secondAttribute="trailing" constant="20" id="uy8-Lv-xpH"/>
                             <constraint firstItem="1sj-V6-faN" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="wmb-Ho-vda"/>
-                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="top" secondItem="wZR-i8-UvN" secondAttribute="bottom" constant="8" symbolic="YES" id="zVi-Zh-rsl"/>
+                            <constraint firstItem="NWO-2m-onk" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="xnt-8X-shD"/>
                         </constraints>
                     </view>
                     <connections>

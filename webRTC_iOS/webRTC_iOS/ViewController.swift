@@ -19,6 +19,8 @@ class ViewController: UIViewController {
     
     private var currentPerson = ""
     private var oppositePerson = ""
+    private var sender = false
+    var chunks = [Data]()
     
     @IBOutlet weak var myName: UITextField!
     @IBOutlet weak var destinationName: UITextField!
@@ -50,13 +52,7 @@ class ViewController: UIViewController {
     
     @IBAction func SendFile(_ sender: Any) {
         
-        
-        // retrieve image & convert to bytes -> NSData
-        let bytes = getArrayOfBytesFromImage(imageData: self.imagePreview.image!.pngData()! as NSData)
-        let data: NSData = NSData(bytes: bytes, length: bytes.count)
-        
-        // get chunks
-        let chunks = sliceToChunk(data: data)
+        self.sender = true
         
         self.webRTCClient.offer { (sdp) in
           self.signalClient.send(sdp: sdp, to: self.oppositePerson)
@@ -69,8 +65,55 @@ class ViewController: UIViewController {
         }
     }
     
-    func getArrayOfBytesFromImage(imageData:NSData) -> Array<UInt8>
-    {
+    @IBAction func SendData(_ sender: Any) {
+        //self.webRTCClient.sendData(Data(chunks[0]))
+        let alert = UIAlertController(title: "Send a message to the other peer",
+                                      message: "This will be transferred over WebRTC data channel",
+                                      preferredStyle: .alert)
+        alert.addTextField { (textField) in
+          textField.placeholder = "Message to send"
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Send", style: .default, handler: { [weak self, unowned alert] _ in
+          guard let dataToSend = alert.textFields?.first?.text?.data(using: .utf8) else {
+            return
+          }
+          self?.webRTCClient.sendData(dataToSend)
+        }))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    @IBAction func Abort(_ sender: Any) {
+        self.signalClient.deleteSdpAndCandidate(for: self.currentPerson)
+        self.webRTCClient.closePeerConnection()
+        self.webRTCClient.createPeerConnection()
+    }
+}
+
+extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        var newImage: UIImage? = nil // update 할 이미지
+        
+        if let possibleImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
+            newImage = possibleImage // 수정된 이미지가 있을 경우
+        } else if let possibleImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+            newImage = possibleImage // 원본 이미지가 있을 경우
+        }
+        
+        self.imagePreview.image = newImage // 받아온 이미지를 update
+        
+        // retrieve image & convert to bytes -> NSData
+        let bytes = getArrayOfBytesFromImage(imageData: newImage!.pngData()! as NSData)
+        let data: NSData = NSData(bytes: bytes, length: bytes.count)
+        chunks = sliceToChunk(data: data)
+        
+        picker.dismiss(animated: true, completion: nil) // picker를 닫아줌
+        
+    }
+    
+    func getArrayOfBytesFromImage(imageData:NSData) -> Array<UInt8> {
 
       // the number of elements:
       let count = imageData.length / MemoryLayout<Int8>.size
@@ -90,12 +133,12 @@ class ViewController: UIViewController {
       return byteArray
     }
     
-    func sliceToChunk(data: NSData) -> [Data]{
+    func sliceToChunk(data: NSData) -> [Data] {
         
         let dataLen = (data as NSData).length
-        let fullChunks = Int(dataLen / 1024) // 1 Kbyte
-        let totalChunks = fullChunks + (dataLen % 1024 != 0 ? 1 : 0)
-        var diff = 1024 // (preset) max size of each chunk
+        var diff = 1024 * 10 // (preset) max size of each chunk
+        let fullChunks = Int(dataLen / diff) // 1 Kbyte
+        let totalChunks = fullChunks + (dataLen % diff != 0 ? 1 : 0)
         var chunks: [Data] = [Data]() // chunks: we will use this
         
         // split data as 'diff' save it to 'chunks'
@@ -103,7 +146,7 @@ class ViewController: UIViewController {
         {
             var chunk:Data
             
-            let chunkBase = chunkCounter * 1024
+            let chunkBase = chunkCounter * diff
             if chunkCounter == totalChunks - 1
             {
                 diff = dataLen - chunkBase
@@ -126,24 +169,6 @@ class ViewController: UIViewController {
         debugPrint(chunks)
         
         return chunks
-    }
-}
-
-extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        
-        var newImage: UIImage? = nil // update 할 이미지
-        
-        if let possibleImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
-            newImage = possibleImage // 수정된 이미지가 있을 경우
-        } else if let possibleImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-            newImage = possibleImage // 원본 이미지가 있을 경우
-        }
-        
-        self.imagePreview.image = newImage // 받아온 이미지를 update
-        picker.dismiss(animated: true, completion: nil) // picker를 닫아줌
-        
     }
 }
 
@@ -181,23 +206,23 @@ extension ViewController: WebRTCClientDelegate {
   
   func webRTCClient(_ client: WebRTCClient, didChangeConnectionState state: RTCIceConnectionState) {
       
-    let textColor: UIColor
-    switch state {
-    case .connected, .completed:
-      textColor = .green
-    case .disconnected:
-      textColor = .orange
-    case .failed, .closed:
-      textColor = .red
-    case .new, .checking, .count:
-      textColor = .black
-    @unknown default:
-      textColor = .black
-    }
-    DispatchQueue.main.async {
-      self.statusField?.text = state.description.capitalized
-      self.statusField?.textColor = textColor
-    }
+      let textColor: UIColor
+      switch state {
+      case .connected, .completed:
+          textColor = .green
+      case .disconnected:
+        textColor = .orange
+      case .failed, .closed:
+          textColor = .red
+      case .new, .checking, .count:
+          textColor = .black
+      @unknown default:
+          textColor = .black
+      }
+      DispatchQueue.main.async {
+          self.statusField?.text = state.description.capitalized
+          self.statusField?.textColor = textColor
+      }
   }
   
   func webRTCClient(_ client: WebRTCClient, didReceiveData data: Data) {
