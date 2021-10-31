@@ -99,16 +99,34 @@
                                 </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gLk-Zy-qm8">
-                                <rect key="frame" x="20" y="217" width="374" height="272"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="272" id="Wxp-cZ-EDE"/>
-                                </constraints>
+                                <rect key="frame" x="20" y="217" width="374" height="538"/>
                             </imageView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5SM-aC-97t">
-                                <rect key="frame" x="173.5" y="497" width="67" height="31"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2Rl-L7-XkF">
+                                <rect key="frame" x="169.5" y="802" width="75" height="31"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="67" id="XwF-Vo-cBF"/>
-                                    <constraint firstAttribute="height" constant="31" id="YM2-ub-aaZ"/>
+                                    <constraint firstAttribute="height" constant="31" id="D5K-2l-n1p"/>
+                                    <constraint firstAttribute="width" constant="75" id="ttA-hs-h91"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Receive"/>
+                                <connections>
+                                    <action selector="ReceiveFile:" destination="BYZ-38-t0r" eventType="touchUpInside" id="y8T-CN-TPm"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Status" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BQp-vw-cLn">
+                                <rect key="frame" x="20" y="841" width="374" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="21" id="njf-Hv-paZ"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5SM-aC-97t">
+                                <rect key="frame" x="173.5" y="763" width="67" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="31" id="Q9e-X1-Gu6"/>
+                                    <constraint firstAttribute="width" constant="67" id="wj9-uf-JiZ"/>
                                 </constraints>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Send"/>
@@ -121,24 +139,31 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="J9q-9x-n5p" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="0Mi-tC-ES1"/>
-                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="top" secondItem="wZR-i8-UvN" secondAttribute="bottom" constant="8" symbolic="YES" id="5CJ-gg-aMA"/>
+                            <constraint firstItem="BQp-vw-cLn" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="43o-aj-Vzx"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="J9q-9x-n5p" secondAttribute="trailing" constant="20" id="7NW-JV-JYn"/>
+                            <constraint firstItem="BQp-vw-cLn" firstAttribute="top" secondItem="2Rl-L7-XkF" secondAttribute="bottom" constant="8" symbolic="YES" id="BSM-hm-0Q4"/>
                             <constraint firstItem="1sj-V6-faN" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="CrO-Sy-mqt"/>
                             <constraint firstItem="wZR-i8-UvN" firstAttribute="top" secondItem="J9q-9x-n5p" secondAttribute="bottom" constant="8" symbolic="YES" id="GHc-Mc-Pdf"/>
-                            <constraint firstItem="5SM-aC-97t" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="LF4-LD-V5Q"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gLk-Zy-qm8" secondAttribute="trailing" constant="20" id="VBu-JM-i0K"/>
-                            <constraint firstItem="5SM-aC-97t" firstAttribute="top" secondItem="gLk-Zy-qm8" secondAttribute="bottom" constant="8" symbolic="YES" id="WPW-kj-IMV"/>
+                            <constraint firstItem="5SM-aC-97t" firstAttribute="top" secondItem="gLk-Zy-qm8" secondAttribute="bottom" constant="8" symbolic="YES" id="ISD-lh-6aL"/>
+                            <constraint firstItem="5SM-aC-97t" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="PGk-wm-NU8"/>
+                            <constraint firstItem="2Rl-L7-XkF" firstAttribute="top" secondItem="5SM-aC-97t" secondAttribute="bottom" constant="8" symbolic="YES" id="Pzu-K2-7dI"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="gLk-Zy-qm8" secondAttribute="trailing" constant="20" id="WU2-Fs-ywX"/>
+                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="X1k-nV-K9y"/>
                             <constraint firstItem="wZR-i8-UvN" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="jtJ-az-3hW"/>
                             <constraint firstItem="J9q-9x-n5p" firstAttribute="top" secondItem="1sj-V6-faN" secondAttribute="bottom" constant="8" symbolic="YES" id="mw0-lf-GHg"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="BQp-vw-cLn" secondAttribute="trailing" constant="20" id="oIo-vx-mPA"/>
+                            <constraint firstItem="2Rl-L7-XkF" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="qh1-wl-PHK"/>
+                            <constraint firstItem="BQp-vw-cLn" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="tO1-8p-5is"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="1sj-V6-faN" secondAttribute="trailing" constant="20" id="uy8-Lv-xpH"/>
                             <constraint firstItem="1sj-V6-faN" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="wmb-Ho-vda"/>
-                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="yfj-mr-0bC"/>
+                            <constraint firstItem="gLk-Zy-qm8" firstAttribute="top" secondItem="wZR-i8-UvN" secondAttribute="bottom" constant="8" symbolic="YES" id="zVi-Zh-rsl"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="destinationName" destination="kLg-cb-46p" id="MoX-6d-UwL"/>
                         <outlet property="imagePreview" destination="gLk-Zy-qm8" id="etN-Pl-eBt"/>
                         <outlet property="myName" destination="v2A-Wi-tsF" id="KdM-EE-3vu"/>
+                        <outlet property="statusField" destination="BQp-vw-cLn" id="FSV-yd-hsR"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

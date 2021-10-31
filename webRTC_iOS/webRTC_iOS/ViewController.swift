@@ -23,6 +23,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var myName: UITextField!
     @IBOutlet weak var destinationName: UITextField!
     @IBOutlet weak var imagePreview: UIImageView!
+    @IBOutlet weak var statusField: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,18 +38,65 @@ class ViewController: UIViewController {
     
     @IBAction func ImagePick(_ sender: Any) {
         self.present(self.imagePicker, animated: true)
+        
+        // set my name & destination name
+        self.currentPerson = myName.text ?? "myName"
+        self.oppositePerson = destinationName.text ?? "oppositeName"
+        
+        // listen for incoming SDP & Candidate
+        self.signalClient.listenSdp(from: self.currentPerson)
+        self.signalClient.listenCandidate(from: self.currentPerson)
     }
     
     @IBAction func SendFile(_ sender: Any) {
+        
+        
+        // retrieve image & convert to bytes -> NSData
         let bytes = getArrayOfBytesFromImage(imageData: self.imagePreview.image!.pngData()! as NSData)
         let data: NSData = NSData(bytes: bytes, length: bytes.count)
+        
+        // get chunks
+        let chunks = sliceToChunk(data: data)
+        
+        self.webRTCClient.offer { (sdp) in
+          self.signalClient.send(sdp: sdp, to: self.oppositePerson)
+        }
+    }
+    
+    @IBAction func ReceiveFile(_ sender: Any) {
+        self.webRTCClient.answer { (localSdp) in
+          self.signalClient.send(sdp: localSdp, to: self.oppositePerson)
+        }
+    }
+    
+    func getArrayOfBytesFromImage(imageData:NSData) -> Array<UInt8>
+    {
+
+      // the number of elements:
+      let count = imageData.length / MemoryLayout<Int8>.size
+
+      // create array of appropriate length:
+      var bytes = [UInt8](repeating: 0, count: count)
+
+      // copy bytes into array
+      imageData.getBytes(&bytes, length:count * MemoryLayout<Int8>.size)
+
+      var byteArray:Array = Array<UInt8>()
+
+      for i in 0 ..< count {
+        byteArray.append(bytes[i])
+      }
+
+      return byteArray
+    }
+    
+    func sliceToChunk(data: NSData) -> [Data]{
         
         let dataLen = (data as NSData).length
         let fullChunks = Int(dataLen / 1024) // 1 Kbyte
         let totalChunks = fullChunks + (dataLen % 1024 != 0 ? 1 : 0)
         var diff = 1024 // (preset) max size of each chunk
-        
-        var chunks:[Data] = [Data]() // chunks: we will use this
+        var chunks: [Data] = [Data]() // chunks: we will use this
         
         // split data as 'diff' save it to 'chunks'
         for chunkCounter in 0..<totalChunks
@@ -71,32 +119,13 @@ class ViewController: UIViewController {
         print("data length is")
         print(dataLen)
         
-        print("Number of Full chunks are")
+        print("Number of Full chunks is")
         print(fullChunks)
         
         // splited data
         debugPrint(chunks)
-    }
-    
-    func getArrayOfBytesFromImage(imageData:NSData) -> Array<UInt8>
-    {
-
-      // the number of elements:
-      let count = imageData.length / MemoryLayout<Int8>.size
-
-      // create array of appropriate length:
-      var bytes = [UInt8](repeating: 0, count: count)
-
-      // copy bytes into array
-      imageData.getBytes(&bytes, length:count * MemoryLayout<Int8>.size)
-
-      var byteArray:Array = Array<UInt8>()
-
-      for i in 0 ..< count {
-        byteArray.append(bytes[i])
-      }
-
-      return byteArray
+        
+        return chunks
     }
 }
 
@@ -151,7 +180,7 @@ extension ViewController: WebRTCClientDelegate {
   }
   
   func webRTCClient(_ client: WebRTCClient, didChangeConnectionState state: RTCIceConnectionState) {
-      /*
+      
     let textColor: UIColor
     switch state {
     case .connected, .completed:
@@ -166,9 +195,9 @@ extension ViewController: WebRTCClientDelegate {
       textColor = .black
     }
     DispatchQueue.main.async {
-      //self.webRTCStatusLabel?.text = state.description.capitalized
-      //self.webRTCStatusLabel?.textColor = textColor
-    }*/
+      self.statusField?.text = state.description.capitalized
+      self.statusField?.textColor = textColor
+    }
   }
   
   func webRTCClient(_ client: WebRTCClient, didReceiveData data: Data) {
