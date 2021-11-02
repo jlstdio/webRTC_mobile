@@ -21,6 +21,10 @@ class ViewController: UIViewController {
     private var oppositePerson = ""
     private var sender = false
     var chunks = [Data]()
+    var receivedChunks = Data()
+    var dataLen = 0
+    var totalChunks = 0
+    var chunksCount = 0
     
     @IBOutlet weak var myName: UITextField!
     @IBOutlet weak var destinationName: UITextField!
@@ -66,21 +70,10 @@ class ViewController: UIViewController {
     }
     
     @IBAction func SendData(_ sender: Any) {
-        //self.webRTCClient.sendData(Data(chunks[0]))
-        let alert = UIAlertController(title: "Send a message to the other peer",
-                                      message: "This will be transferred over WebRTC data channel",
-                                      preferredStyle: .alert)
-        alert.addTextField { (textField) in
-          textField.placeholder = "Message to send"
-        }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "Send", style: .default, handler: { [weak self, unowned alert] _ in
-          guard let dataToSend = alert.textFields?.first?.text?.data(using: .utf8) else {
-            return
-          }
-          self?.webRTCClient.sendData(dataToSend)
-        }))
-        self.present(alert, animated: true, completion: nil)
+        
+        let head = ("send/" + String(dataLen) + "/" + String(totalChunks)).data(using: .utf8)
+        
+        self.webRTCClient.sendData(head!)
     }
     
     @IBAction func Abort(_ sender: Any) {
@@ -135,11 +128,10 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
     
     func sliceToChunk(data: NSData) -> [Data] {
         
-        let dataLen = (data as NSData).length
         var diff = 1024 * 10 // (preset) max size of each chunk
+        dataLen = (data as NSData).length
         let fullChunks = Int(dataLen / diff) // 1 Kbyte
-        let totalChunks = fullChunks + (dataLen % diff != 0 ? 1 : 0)
-        var chunks: [Data] = [Data]() // chunks: we will use this
+        totalChunks = fullChunks + (dataLen % diff != 0 ? 1 : 0)
         
         // split data as 'diff' save it to 'chunks'
         for chunkCounter in 0..<totalChunks
@@ -225,14 +217,75 @@ extension ViewController: WebRTCClientDelegate {
       }
   }
   
-  func webRTCClient(_ client: WebRTCClient, didReceiveData data: Data) {
-    DispatchQueue.main.async {
-      let message = String(data: data, encoding: .utf8) ?? "(Binary: \(data.count) bytes)"
-      let alert = UIAlertController(title: "Message from WebRTC", message: message, preferredStyle: .alert)
-      alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
-      self.present(alert, animated: true, completion: nil)
+    func webRTCClient(_ client: WebRTCClient, didReceiveData data: Data) {
+        DispatchQueue.main.async { [self] in
+            let message = String(data: data, encoding: .utf8) ?? "body"
+            
+            if message.contains("body") {
+             
+                self.receivedChunks.append(data)
+                
+                if (self.chunksCount >= self.totalChunks) {
+                    self.dataLen = 0
+                    self.totalChunks = 0
+                    self.chunksCount = 0
+                    
+                    let head = "done".data(using: .utf8)
+                    self.webRTCClient.sendData(head!)
+                    
+                    print("total chunks are \(receivedChunks.count)")
+                    
+                    self.imagePreview.image = UIImage(data: receivedChunks)
+                    
+                    let alert = UIAlertController(title: "Message from WebRTC", message: "RECEIVED", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                }
+                else {
+                    print("requiring \(self.chunksCount)/\(self.totalChunks)")
+                    let head = ("require/" + String(self.chunksCount)).data(using: .utf8)
+                    self.webRTCClient.sendData(head!)
+                    self.chunksCount += 1
+                }
+            }
+            
+            else if message.contains("done") {
+                
+                let alert = UIAlertController(title: "Message from WebRTC", message: "SENT!", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+            
+            else if message.starts(with: "require") {
+                let buff = message.split(separator: "/")
+                self.webRTCClient.sendData(self.chunks[Int(buff[1])!])
+                
+                print("sending \(self.chunksCount)/\(self.totalChunks)")
+            }
+            
+            else if message.starts(with: "send") {
+                let buff = message.split(separator: "/")
+                self.dataLen = Int(buff[1])!
+                self.totalChunks = Int(buff[2])!
+                self.chunksCount = 0
+                self.receivedChunks = Data()
+                
+                print("dataLen is \(self.dataLen)")
+                print("totalChunks are \(self.totalChunks)")
+                
+                print("requiring \(self.chunksCount)/\(self.totalChunks)")
+                
+                let head = ("require/" + String(self.chunksCount)).data(using: .utf8)
+                self.webRTCClient.sendData(head!)
+                self.chunksCount += 1
+                
+            }
+        
+            //let alert = UIAlertController(title: "Message from WebRTC", message: message, preferredStyle: .alert)
+            //alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
+            //self.present(alert, animated: true, completion: nil)
+        }
     }
-  }
 }
 
 extension ViewController: UITextFieldDelegate {
@@ -245,5 +298,19 @@ extension ViewController: UITextFieldDelegate {
             destinationName.resignFirstResponder()
         }
         return true
+    }
+}
+
+extension String {
+
+    func toImage(_ handler: @escaping ((UIImage?)->())) {
+        if let url = URL(string: self) {
+            URLSession.shared.dataTask(with: url) { (data, response, error) in
+                if let data = data {
+                    let image = UIImage(data: data)
+                    handler(image)
+                }
+            }.resume()
+        }
     }
 }
