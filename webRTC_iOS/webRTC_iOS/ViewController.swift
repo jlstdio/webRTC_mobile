@@ -71,6 +71,7 @@ class ViewController: UIViewController {
     
     @IBAction func SendData(_ sender: Any) {
         
+        self.chunksCount = 0
         let head = ("send/" + String(dataLen) + "/" + String(totalChunks)).data(using: .utf8)
         
         self.webRTCClient.sendData(head!)
@@ -242,6 +243,8 @@ extension ViewController: WebRTCClientDelegate {
                     self.present(alert, animated: true, completion: nil)
                 }
                 else {
+                    
+                    print("currentchunks are \(receivedChunks.count)")
                     print("requiring \(self.chunksCount)/\(self.totalChunks)")
                     let head = ("require/" + String(self.chunksCount)).data(using: .utf8)
                     self.webRTCClient.sendData(head!)
@@ -261,6 +264,7 @@ extension ViewController: WebRTCClientDelegate {
                 self.webRTCClient.sendData(self.chunks[Int(buff[1])!])
                 
                 print("sending \(self.chunksCount)/\(self.totalChunks)")
+                self.chunksCount += 1
             }
             
             else if message.starts(with: "send") {
