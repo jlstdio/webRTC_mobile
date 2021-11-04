@@ -22,6 +22,9 @@
 		D3BCC7D7272D28790062BEB6 /* SessionDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCC7D6272D28790062BEB6 /* SessionDescription.swift */; };
 		D3BCC7DA272D288C0062BEB6 /* IceCandidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCC7D9272D288C0062BEB6 /* IceCandidate.swift */; };
 		D3BCC7DC272D28960062BEB6 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCC7DB272D28960062BEB6 /* Config.swift */; };
+		D3BCC7E0272D2A910062BEB6 /* WebRTCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCC7DF272D2A910062BEB6 /* WebRTCClient.swift */; };
+		D3BCC7E2272D2A9D0062BEB6 /* SignalingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BCC7E1272D2A9C0062BEB6 /* SignalingClient.swift */; };
+		D3BCC7E4272D33D00062BEB6 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3BCC7E3272D33D00062BEB6 /* GoogleService-Info.plist */; };
 		FC260E0A287B106128037419 /* Pods_webRTC_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B673A4578BC9A354D620ED6F /* Pods_webRTC_iOS.framework */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +71,9 @@
 		D3BCC7D6272D28790062BEB6 /* SessionDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDescription.swift; sourceTree = "<group>"; };
 		D3BCC7D9272D288C0062BEB6 /* IceCandidate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IceCandidate.swift; sourceTree = "<group>"; };
 		D3BCC7DB272D28960062BEB6 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		D3BCC7DF272D2A910062BEB6 /* WebRTCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCClient.swift; sourceTree = "<group>"; };
+		D3BCC7E1272D2A9C0062BEB6 /* SignalingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalingClient.swift; sourceTree = "<group>"; };
+		D3BCC7E3272D33D00062BEB6 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E4DF12E8F25D04BC4195820A /* Pods-webRTC_iOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-webRTC_iOSTests.release.xcconfig"; path = "Target Support Files/Pods-webRTC_iOSTests/Pods-webRTC_iOSTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -119,7 +125,6 @@
 				07CA2964A07B6A72CB21F48A /* Pods-webRTC_iOSTests.debug.xcconfig */,
 				E4DF12E8F25D04BC4195820A /* Pods-webRTC_iOSTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -148,14 +153,15 @@
 		D3BCC7A2272D28010062BEB6 /* webRTC_iOS */ = {
 			isa = PBXGroup;
 			children = (
+				D3BCC7DE272D2A750062BEB6 /* Services */,
+				D3BCC7DD272D2A630062BEB6 /* Delegates */,
 				D3BCC7D3272D28400062BEB6 /* Modules */,
-				D3BCC7A3272D28010062BEB6 /* AppDelegate.swift */,
-				D3BCC7A5272D28010062BEB6 /* SceneDelegate.swift */,
 				D3BCC7A7272D28010062BEB6 /* ViewController.swift */,
 				D3BCC7A9272D28010062BEB6 /* Main.storyboard */,
 				D3BCC7AC272D28030062BEB6 /* Assets.xcassets */,
 				D3BCC7AE272D28030062BEB6 /* LaunchScreen.storyboard */,
 				D3BCC7B1272D28030062BEB6 /* Info.plist */,
+				D3BCC7E3272D33D00062BEB6 /* GoogleService-Info.plist */,
 			);
 			path = webRTC_iOS;
 			sourceTree = "<group>";
@@ -186,6 +192,24 @@
 				D3BCC7DB272D28960062BEB6 /* Config.swift */,
 			);
 			path = Modules;
+			sourceTree = "<group>";
+		};
+		D3BCC7DD272D2A630062BEB6 /* Delegates */ = {
+			isa = PBXGroup;
+			children = (
+				D3BCC7A3272D28010062BEB6 /* AppDelegate.swift */,
+				D3BCC7A5272D28010062BEB6 /* SceneDelegate.swift */,
+			);
+			path = Delegates;
+			sourceTree = "<group>";
+		};
+		D3BCC7DE272D2A750062BEB6 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D3BCC7DF272D2A910062BEB6 /* WebRTCClient.swift */,
+				D3BCC7E1272D2A9C0062BEB6 /* SignalingClient.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -298,6 +322,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3BCC7B0272D28030062BEB6 /* LaunchScreen.storyboard in Resources */,
+				D3BCC7E4272D33D00062BEB6 /* GoogleService-Info.plist in Resources */,
 				D3BCC7AD272D28030062BEB6 /* Assets.xcassets in Resources */,
 				D3BCC7AB272D28010062BEB6 /* Main.storyboard in Resources */,
 			);
@@ -428,8 +453,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3BCC7D7272D28790062BEB6 /* SessionDescription.swift in Sources */,
+				D3BCC7E2272D2A9D0062BEB6 /* SignalingClient.swift in Sources */,
 				D3BCC7A8272D28010062BEB6 /* ViewController.swift in Sources */,
 				D3BCC7A4272D28010062BEB6 /* AppDelegate.swift in Sources */,
+				D3BCC7E0272D2A910062BEB6 /* WebRTCClient.swift in Sources */,
 				D3BCC7DC272D28960062BEB6 /* Config.swift in Sources */,
 				D3BCC7A6272D28010062BEB6 /* SceneDelegate.swift in Sources */,
 				D3BCC7D5272D286C0062BEB6 /* RTCStates.swift in Sources */,
@@ -524,6 +551,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -585,6 +613,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -614,6 +643,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VX6755UG9L;
+				ENABLE_BITCODE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = webRTC_iOS/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -643,6 +673,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = VX6755UG9L;
+				ENABLE_BITCODE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = webRTC_iOS/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
