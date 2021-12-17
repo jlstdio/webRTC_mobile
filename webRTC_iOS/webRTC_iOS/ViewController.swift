@@ -34,9 +34,6 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.webRTCClient.delegate = self
-        self.signalClient.delegate = self
-        
         self.imagePicker.sourceType = .photoLibrary // 앨범에서 가져옴
         self.imagePicker.allowsEditing = true // 수정 가능 여부
         self.imagePicker.delegate = self // picker delegate
@@ -44,6 +41,9 @@ class ViewController: UIViewController {
     
     @IBAction func ImagePick(_ sender: Any) {
         self.present(self.imagePicker, animated: true)
+        
+        self.webRTCClient.delegate = self
+        self.signalClient.delegate = self
         
         // set my name & destination name
         self.currentPerson = myName.text ?? "myName"
@@ -64,6 +64,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func ReceiveFile(_ sender: Any) {
+        
         self.webRTCClient.answer { (localSdp) in
           self.signalClient.send(sdp: localSdp, to: self.oppositePerson)
         }
@@ -164,7 +165,6 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         return chunks
     }
 }
-
 
 extension ViewController: SignalClientDelegate {
   func signalClientDidConnect(_ signalClient: SignalingClient) {
