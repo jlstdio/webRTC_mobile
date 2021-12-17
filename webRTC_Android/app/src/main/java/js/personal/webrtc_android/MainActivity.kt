@@ -16,10 +16,9 @@ class MainActivity : AppCompatActivity() {
         var sender = ""
         var receiver = ""
 
-        binding.filePicker.setOnClickListener {
+        binding.ready.setOnClickListener {
             sender = binding.sender.text.toString()
-            receiver = binding.receiver.text.toString()
-
+            sender = binding.receiver.text.toString()
         }
 
         binding.offer.setOnClickListener {

@@ -29,11 +29,11 @@
         android:layout_height="wrap_content"
         android:hint="Receiver" />
 
-    <EditText
-        android:id="@+id/data"
+    <Button
+        android:id="@+id/ready"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="text to send" />
+        android:text="READY" />
 
     <Button
         android:id="@+id/offer"
@@ -46,6 +46,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ANSWER" />
+
+    <EditText
+        android:id="@+id/data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="text to send" />
 
     <Button
         android:id="@+id/send"
