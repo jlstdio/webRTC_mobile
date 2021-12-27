@@ -1,18 +1,16 @@
 package js.personal.webrtc_android.modules
 
+import android.os.Build
 import android.util.Log
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import androidx.annotation.RequiresApi
+import com.google.firebase.database.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import org.json.JSONObject
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
 
-@ExperimentalCoroutinesApi
-@KtorExperimentalAPI
-class SignalingClient(
-    private val meetingID : String,
-    private val listener: SignalingClientListener
-) : CoroutineScope {
+class SignalingClient(private val me: String, private val listener: SignalingClientListener) : CoroutineScope {
 
     companion object {
         private const val HOST_ADDRESS = "192.168.0.12"
@@ -24,127 +22,93 @@ class SignalingClient(
 
     val TAG = "SignallingClient"
 
-    val db = Firebase.firestore
-
-    private val gson = Gson()
-
     var SDPtype : String? = null
     override val coroutineContext = Dispatchers.IO + job
 
-//    private val client = HttpClient(CIO) {
-//        install(WebSockets)
-//        install(JsonFeature) {
-//            serializer = GsonSerializer()
-//        }
-//    }
-
     private val sendChannel = ConflatedBroadcastChannel<String>()
 
+    private val firebaseDatabase = FirebaseDatabase.getInstance()
+    private val databaseReference = firebaseDatabase.reference
+
     init {
-        connect()
+        addListener(me)
     }
 
-    private fun connect() = launch {
-        db.enableNetwork().addOnSuccessListener {
+    fun addListener(me: String) {
+        launch {
             listener.onConnectionEstablished()
-        }
-        val sendData = sendChannel.offer("")
-        sendData.let {
-            Log.v(this@SignalingClient.javaClass.simpleName, "Sending: $it")
-//            val data = hashMapOf(
-//                    "data" to it
-//            )
-//            db.collection("calls")
-//                    .add(data)
-//                    .addOnSuccessListener { documentReference ->
-//                        Log.e(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-//                    }
-//                    .addOnFailureListener { e ->
-//                        Log.e(TAG, "Error adding document", e)
-//                    }
-        }
-        try {
-            db.collection("calls")
-                .document(meetingID)
-                .addSnapshotListener { snapshot, e ->
 
-                    if (e != null) {
-                        Log.w(TAG, "listen:error", e)
-                        return@addSnapshotListener
-                    }
+            databaseReference.child("webRTC").child(me).child("sdp").addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val type = snapshot.child("type").value as? String ?: "null"
+                    val sdp = snapshot.child("sdp").value as? String ?: "null"
 
-                    if (snapshot != null && snapshot.exists()) {
-                        val data = snapshot.data
-                        if (data!!["type"].toString() == "OFFER") {
-                            listener.onOfferReceived(SessionDescription(
-                                SessionDescription.Type.OFFER, data["sdp"].toString()))
-                            SDPtype = "Offer"
-                        } else if (data["type"].toString() == "ANSWER") {
-                            listener.onAnswerReceived(SessionDescription(
-                                SessionDescription.Type.ANSWER, data["sdp"].toString()))
-                            SDPtype = "Answer"
-                        } else if (!Constants.isIntiatedNow && data["type"].toString() == "END_CALL") {
-                            listener.onCallEnded()
-                            SDPtype = "End Call"
+                    Log.d("test", snapshot.children.toString())
+                    Log.d("test : sdp.sdp", sdp)
+                    Log.d("test : sdp.type", type)
 
-                        }
-                        Log.d(TAG, "Current data: ${snapshot.data}")
-                    } else {
-                        Log.d(TAG, "Current data: null")
+                    if (type == "OFFER") {
+                        listener.onOfferReceived(SessionDescription(SessionDescription.Type.OFFER, sdp))
+                        SDPtype = "Offer"
+                    } else if (type == "ANSWER") {
+                        listener.onAnswerReceived(SessionDescription(SessionDescription.Type.ANSWER, sdp))
+                        SDPtype = "Answer"
+                    } else if (!Constants.isIntiatedNow && sdp == "END_CALL") {
+                        listener.onCallEnded()
+                        SDPtype = "End Call"
                     }
                 }
-            db.collection("calls").document(meetingID)
-                .collection("candidates").addSnapshotListener{ querysnapshot,e->
-                    if (e != null) {
-                        Log.w(TAG, "listen:error", e)
-                        return@addSnapshotListener
-                    }
 
-                    if (querysnapshot != null && !querysnapshot.isEmpty) {
-                        for (dataSnapShot in querysnapshot) {
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
 
-                            val data = dataSnapShot.data
-                            if (SDPtype == "Offer" && data.containsKey("type") && data.get("type")=="offerCandidate") {
-                                listener.onIceCandidateReceived(
-                                    IceCandidate(data["sdpMid"].toString(),
-                                        Math.toIntExact(data["sdpMLineIndex"] as Long),
-                                        data["sdpCandidate"].toString()))
-                            } else if (SDPtype == "Answer" && data.containsKey("type") && data.get("type")=="answerCandidate") {
-                                listener.onIceCandidateReceived(
-                                    IceCandidate(data["sdpMid"].toString(),
-                                        Math.toIntExact(data["sdpMLineIndex"] as Long),
-                                        data["sdpCandidate"].toString()))
-                            }
-                            Log.e(TAG, "candidateQuery: $dataSnapShot" )
+            })
+
+            databaseReference.child("webRTC").child(me).child("candidates").addChildEventListener(object : ChildEventListener {
+                @RequiresApi(Build.VERSION_CODES.N)
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+
+
+                    val CANDIDATEtype = snapshot.child("type").value as? String ?: ""
+                    val sdpMid = snapshot.child("sdpMid").value as? String ?: ""
+                    val sdpMLineIndex = snapshot.child("sdpMLineIndex").value as? String ?: ""
+                    val sdpCandidate = snapshot.child("sdpCandidate").value as? String ?: ""
+
+                    Log.d("test: candidates.type", CANDIDATEtype)
+
+                    if (CANDIDATEtype.isNullOrEmpty()) {
+                        if (SDPtype == "Offer" && CANDIDATEtype == "offerCandidate") {
+                            listener.onIceCandidateReceived(IceCandidate(sdpMid, Math.toIntExact(sdpMLineIndex as Long), sdpCandidate))
+                        } else if (SDPtype == "Answer" && CANDIDATEtype == "answerCandidate") {
+                            listener.onIceCandidateReceived(IceCandidate(sdpMid, Math.toIntExact(sdpMLineIndex as Long), sdpCandidate))
                         }
+                        //Log.e(TAG, "candidateQuery: ${snapshot.key}" )
                     }
                 }
-//            db.collection("calls").document(meetingID)
-//                    .get()
-//                    .addOnSuccessListener { result ->
-//                        val data = result.data
-//                        if (data?.containsKey("type")!! && data.getValue("type").toString() == "OFFER") {
-//                            Log.e(TAG, "connect: OFFER - $data")
-//                            listener.onOfferReceived(SessionDescription(SessionDescription.Type.OFFER,data["sdp"].toString()))
-//                        } else if (data?.containsKey("type") && data.getValue("type").toString() == "ANSWER") {
-//                            Log.e(TAG, "connect: ANSWER - $data")
-//                            listener.onAnswerReceived(SessionDescription(SessionDescription.Type.ANSWER,data["sdp"].toString()))
-//                        }
-//                    }
-//                    .addOnFailureListener {
-//                        Log.e(TAG, "connect: $it")
-//                    }
 
-        } catch (exception: Exception) {
-            Log.e(TAG, "connectException: $exception")
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
 
+                override fun onChildRemoved(snapshot: DataSnapshot) {}
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+
+                override fun onCancelled(error: DatabaseError) {}
+
+            })
         }
     }
 
-    fun sendIceCandidate(candidate: IceCandidate?,isJoin : Boolean) = runBlocking {
-        val type = when {
-            isJoin -> "answerCandidate"
-            else -> "offerCandidate"
+    fun sendIceCandidate(opposite: String, candidate: IceCandidate?, isJoin : Boolean) = runBlocking {
+        var type = ""
+
+        when(isJoin) {
+            true -> {
+                type = "answerCandidate"
+            }
+            false -> {
+                type = "offerCandidate"
+            }
         }
         val candidateConstant = hashMapOf(
             "serverUrl" to candidate?.serverUrl,
@@ -153,15 +117,8 @@ class SignalingClient(
             "sdpCandidate" to candidate?.sdp,
             "type" to type
         )
-        db.collection("calls")
-            .document("$meetingID").collection("candidates").document(type)
-            .set(candidateConstant as Map<String, Any>)
-            .addOnSuccessListener {
-                Log.e(TAG, "sendIceCandidate: Success" )
-            }
-            .addOnFailureListener {
-                Log.e(TAG, "sendIceCandidate: Error $it" )
-            }
+
+        databaseReference.child("webRTC").child(opposite).child("candidates").push().setValue(candidateConstant as Map<String, Any>)
     }
 
     fun destroy() {

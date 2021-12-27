@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "262889143200",
+    "project_id": "webrtc-f8111",
+    "storage_bucket": "webrtc-f8111.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:262889143200:android:190bb6f2426c97647642c5",
+        "android_client_info": {
+          "package_name": "js.personal.webrtc_android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "262889143200-hd8knr9m2jtj889g17qe9r2mtqiq2362.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjmXmbpML-lQ14mAsPvvvusjy1b4wvo98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "262889143200-hd8knr9m2jtj889g17qe9r2mtqiq2362.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "262889143200-78pvgavqvbpo3b3pv0af1vvvsoo50n5o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "JS.personal.webRTC.webRTC-iOS"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

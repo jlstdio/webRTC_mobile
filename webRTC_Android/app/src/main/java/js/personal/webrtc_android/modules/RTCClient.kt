@@ -1,29 +1,18 @@
 package js.personal.webrtc_android.modules
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
+import com.google.firebase.database.FirebaseDatabase
 import org.webrtc.*
 
-class RTCClient(
-    context: Application,
-    observer: PeerConnection.Observer
-) {
-
-    companion object {
-        private const val LOCAL_TRACK_ID = "local_track"
-        private const val LOCAL_STREAM_ID = "local_track"
-    }
+class RTCClient(context: Application?, observer: PeerConnection.Observer?) {
 
     private val rootEglBase: EglBase = EglBase.create()
-
-    private var localAudioTrack : AudioTrack? = null
-    private var localVideoTrack : VideoTrack? = null
     val TAG = "RTCClient"
-
     var remoteSessionDescription : SessionDescription? = null
 
-    val db = Firebase.firestore
+    private val firebaseDatabase = FirebaseDatabase.getInstance()
+    private val databaseReference = firebaseDatabase.reference
 
     init {
         initPeerConnectionFactory(context)
@@ -35,19 +24,16 @@ class RTCClient(
     )
 
     private val peerConnectionFactory by lazy { buildPeerConnectionFactory() }
-    private val videoCapturer by lazy { getVideoCapturer(context) }
-
-    private val audioSource by lazy { peerConnectionFactory.createAudioSource(MediaConstraints())}
-    private val localVideoSource by lazy { peerConnectionFactory.createVideoSource(false) }
     private val peerConnection by lazy { buildPeerConnection(observer) }
 
-    private fun initPeerConnectionFactory(context: Application) {
+    private fun initPeerConnectionFactory(context: Application?) {
         val options = PeerConnectionFactory.InitializationOptions.builder(context)
             .setEnableInternalTracer(true)
             .setFieldTrials("WebRTC-H264HighProfile/Enabled/")
             .createInitializationOptions()
         PeerConnectionFactory.initialize(options)
     }
+
 
     private fun buildPeerConnectionFactory(): PeerConnectionFactory {
         return PeerConnectionFactory
@@ -61,43 +47,18 @@ class RTCClient(
             .createPeerConnectionFactory()
     }
 
-    private fun buildPeerConnection(observer: PeerConnection.Observer) = peerConnectionFactory.createPeerConnection(
+    private fun buildPeerConnection(observer: PeerConnection.Observer?) = peerConnectionFactory.createPeerConnection(
         iceServer,
         observer
     )
 
-    private fun getVideoCapturer(context: Context) =
-        Camera2Enumerator(context).run {
-            deviceNames.find {
-                isFrontFacing(it)
-            }?.let {
-                createCapturer(it, null)
-            } ?: throw IllegalStateException()
-        }
+    private fun PeerConnection.call(sdpObserver: SdpObserver, person: String) {
 
-    fun initSurfaceView(view: SurfaceViewRenderer) = view.run {
-        setMirror(true)
-        setEnableHardwareScaler(true)
-        init(rootEglBase.eglBaseContext, null)
-    }
-
-    fun startLocalVideoCapture(localVideoOutput: SurfaceViewRenderer) {
-        val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, rootEglBase.eglBaseContext)
-        (videoCapturer as VideoCapturer).initialize(surfaceTextureHelper, localVideoOutput.context, localVideoSource.capturerObserver)
-        videoCapturer.startCapture(320, 240, 60)
-        localAudioTrack = peerConnectionFactory.createAudioTrack(LOCAL_TRACK_ID + "_audio", audioSource);
-        localVideoTrack = peerConnectionFactory.createVideoTrack(LOCAL_TRACK_ID, localVideoSource)
-        localVideoTrack?.addSink(localVideoOutput)
-        val localStream = peerConnectionFactory.createLocalMediaStream(LOCAL_STREAM_ID)
-        localStream.addTrack(localVideoTrack)
-        localStream.addTrack(localAudioTrack)
-        peerConnection?.addStream(localStream)
-    }
-
-    private fun PeerConnection.call(sdpObserver: SdpObserver, meetingID: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
         }
+
+        var offer: HashMap<String, Any?>? = null
 
         createOffer(object : SdpObserver by sdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
@@ -105,21 +66,13 @@ class RTCClient(
                     override fun onSetFailure(p0: String?) {
                         Log.e(TAG, "onSetFailure: $p0")
                     }
-
                     override fun onSetSuccess() {
-                        val offer = hashMapOf(
+                        offer = hashMapOf(
                             "sdp" to desc?.description,
                             "type" to desc?.type
                         )
-                        db.collection("calls").document(meetingID)
-                            .set(offer)
-                            .addOnSuccessListener {
-                                Log.e(TAG, "DocumentSnapshot added")
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e(TAG, "Error adding document", e)
-                            }
-                        Log.e(TAG, "onSetSuccess")
+
+                        databaseReference.child("webRTC").child(person).child("sdp").setValue(offer)
                     }
 
                     override fun onCreateSuccess(p0: SessionDescription?) {
@@ -143,24 +96,21 @@ class RTCClient(
         }, constraints)
     }
 
-    private fun PeerConnection.answer(sdpObserver: SdpObserver, meetingID: String) {
+    private fun PeerConnection.answer(sdpObserver: SdpObserver, person: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
         }
+        var answer: HashMap<String, Any?>? = null
+
         createAnswer(object : SdpObserver by sdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
-                val answer = hashMapOf(
+                answer = hashMapOf(
                     "sdp" to desc?.description,
                     "type" to desc?.type
                 )
-                db.collection("calls").document(meetingID)
-                    .set(answer)
-                    .addOnSuccessListener {
-                        Log.e(TAG, "DocumentSnapshot added")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e(TAG, "Error adding document", e)
-                    }
+
+                databaseReference.child("webRTC").child(person).child("sdp").setValue(answer)
+
                 setLocalDescription(object : SdpObserver {
                     override fun onSetFailure(p0: String?) {
                         Log.e(TAG, "onSetFailure: $p0")
@@ -179,6 +129,7 @@ class RTCClient(
                     }
                 }, desc)
                 sdpObserver.onCreateSuccess(desc)
+
             }
 
             override fun onCreateFailure(p0: String?) {
@@ -193,6 +144,7 @@ class RTCClient(
 
     fun onRemoteSessionReceived(sessionDescription: SessionDescription) {
         remoteSessionDescription = sessionDescription
+
         peerConnection?.setRemoteDescription(object : SdpObserver {
             override fun onSetFailure(p0: String?) {
                 Log.e(TAG, "onSetFailure: $p0")
@@ -217,46 +169,11 @@ class RTCClient(
         peerConnection?.addIceCandidate(iceCandidate)
     }
 
-    fun endCall(meetingID: String) {
-        db.collection("calls").document(meetingID).collection("candidates")
-            .get().addOnSuccessListener {
-                val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
-                for ( dataSnapshot in it) {
-                    if (dataSnapshot.contains("type") && dataSnapshot["type"]=="offerCandidate") {
-                        val offerCandidate = dataSnapshot
-                        iceCandidateArray.add(IceCandidate(offerCandidate["sdpMid"].toString(), Math.toIntExact(offerCandidate["sdpMLineIndex"] as Long), offerCandidate["sdp"].toString()))
-                    } else if (dataSnapshot.contains("type") && dataSnapshot["type"]=="answerCandidate") {
-                        val answerCandidate = dataSnapshot
-                        iceCandidateArray.add(IceCandidate(answerCandidate["sdpMid"].toString(), Math.toIntExact(answerCandidate["sdpMLineIndex"] as Long), answerCandidate["sdp"].toString()))
-                    }
-                }
-                peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
-            }
-        val endCall = hashMapOf(
-            "type" to "END_CALL"
-        )
-        db.collection("calls").document(meetingID)
-            .set(endCall)
-            .addOnSuccessListener {
-                Log.e(TAG, "DocumentSnapshot added")
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Error adding document", e)
-            }
+    fun endCall(sender: String, receiver: String) {
+
+        databaseReference.child("webRTC").child(sender).setValue(null)
+        databaseReference.child("webRTC").child(receiver).setValue(null)
 
         peerConnection?.close()
-    }
-
-    fun enableVideo(videoEnabled: Boolean) {
-        if (localVideoTrack !=null)
-            localVideoTrack?.setEnabled(videoEnabled)
-    }
-
-    fun enableAudio(audioEnabled: Boolean) {
-        if (localAudioTrack != null)
-            localAudioTrack?.setEnabled(audioEnabled)
-    }
-    fun switchCamera() {
-        videoCapturer.switchCamera(null)
     }
 }

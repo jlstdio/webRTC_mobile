@@ -9,6 +9,7 @@
     android:orientation="vertical">
 
     <TextView
+        android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="webRTC sample"
@@ -18,16 +19,16 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/sender"
+        android:id="@+id/me"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Sender" />
+        android:hint="Me" />
 
     <EditText
-        android:id="@+id/receiver"
+        android:id="@+id/opposite"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Receiver" />
+        android:hint="Opposite" />
 
     <Button
         android:id="@+id/ready"
