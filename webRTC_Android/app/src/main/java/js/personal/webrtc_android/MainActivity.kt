@@ -1,6 +1,7 @@
 package js.personal.webrtc_android
 
 import android.app.Application
+import android.content.ContentValues
 import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +10,7 @@ import com.google.firebase.database.FirebaseDatabase
 import js.personal.webrtc_android.databinding.ActivityMainBinding
 import js.personal.webrtc_android.modules.*
 import org.webrtc.*
+import java.nio.ByteBuffer
 
 class MainActivity : AppCompatActivity() {
 
@@ -135,6 +137,23 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onTrack(transceiver: RtpTransceiver?) {
                     Log.e("test", "onTrack: $transceiver" )
+                }
+            },
+            object : DataChannelObserver() {
+                override fun onMessage(buffer: DataChannel.Buffer) {
+                    val data: ByteBuffer = buffer.data
+                    val bytes = ByteArray(data.remaining())
+                    data.get(bytes)
+                    val command = String(bytes)
+                    Log.d(ContentValues.TAG, "DataChannel: onMessage: " + command)
+                }
+
+                override fun onBufferedAmountChange(p0: Long) {
+
+                }
+
+                override fun onStateChange() {
+                    Log.d(ContentValues.TAG, "DataChannel: onStateChange: ")
                 }
             }
         )

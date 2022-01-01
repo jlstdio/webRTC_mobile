@@ -4,8 +4,10 @@ import android.app.Application
 import android.util.Log
 import com.google.firebase.database.FirebaseDatabase
 import org.webrtc.*
+import org.webrtc.DataChannel
+import java.nio.ByteBuffer
 
-class RTCClient(context: Application?, observer: PeerConnection.Observer?) {
+class RTCClient(context: Application?, observer: PeerConnection.Observer?, dcObserver: DataChannel.Observer) {
 
     private val rootEglBase: EglBase = EglBase.create()
     val TAG = "RTCClient"
@@ -13,6 +15,8 @@ class RTCClient(context: Application?, observer: PeerConnection.Observer?) {
 
     private val firebaseDatabase = FirebaseDatabase.getInstance()
     private val databaseReference = firebaseDatabase.reference
+
+    lateinit var dataChannel: DataChannel
 
     init {
         initPeerConnectionFactory(context)
@@ -25,6 +29,7 @@ class RTCClient(context: Application?, observer: PeerConnection.Observer?) {
 
     private val peerConnectionFactory by lazy { buildPeerConnectionFactory() }
     private val peerConnection by lazy { buildPeerConnection(observer) }
+
 
     private fun initPeerConnectionFactory(context: Application?) {
         val options = PeerConnectionFactory.InitializationOptions.builder(context)
@@ -138,6 +143,13 @@ class RTCClient(context: Application?, observer: PeerConnection.Observer?) {
         }, constraints)
     }
 
+    fun createDC(observer: DataChannel.Observer) {
+        val dcInit = DataChannel.Init()
+        dcInit.id = 1
+        dataChannel = peerConnection!!.createDataChannel("1", dcInit)
+        dataChannel.registerObserver(observer)
+    }
+
     fun call(sdpObserver: SdpObserver, meetingID: String) = peerConnection?.call(sdpObserver, meetingID)
 
     fun answer(sdpObserver: SdpObserver, meetingID: String) = peerConnection?.answer(sdpObserver, meetingID)
@@ -167,6 +179,11 @@ class RTCClient(context: Application?, observer: PeerConnection.Observer?) {
 
     fun addIceCandidate(iceCandidate: IceCandidate?) {
         peerConnection?.addIceCandidate(iceCandidate)
+    }
+
+    fun sendData(data: String) {
+        val byteData = ByteBuffer.wrap(data.toByteArray())
+        dataChannel.send(DataChannel.Buffer(byteData, false))
     }
 
     fun endCall(sender: String, receiver: String) {

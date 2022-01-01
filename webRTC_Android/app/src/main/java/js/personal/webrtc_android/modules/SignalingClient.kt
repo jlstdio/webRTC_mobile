@@ -30,9 +30,7 @@ class SignalingClient(private val me: String, private val listener: SignalingCli
     private val firebaseDatabase = FirebaseDatabase.getInstance()
     private val databaseReference = firebaseDatabase.reference
 
-    init {
-        addListener(me)
-    }
+    init { addListener(me) }
 
     fun addListener(me: String) {
         launch {
