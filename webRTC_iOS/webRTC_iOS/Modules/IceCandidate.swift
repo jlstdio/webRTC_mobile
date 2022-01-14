@@ -15,7 +15,7 @@ struct IceCandidate: Codable {
     let sdpMLineIndex: Int32
     let sdpMid: String?
     
-    init(from iceCandidate: RTCIceCandidate) {
+    init(from iceCandidate: RTCIceCandid/Users/joonheelee/Documents/github_repo/webRTC_mobile/webRTC_iOS/webRTC_iOS/Modules/IceCandidate.swiftate) {
         self.sdpMLineIndex = iceCandidate.sdpMLineIndex
         self.sdpMid = iceCandidate.sdpMid
         self.sdp = iceCandidate.sdp
