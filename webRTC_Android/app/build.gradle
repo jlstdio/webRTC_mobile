@@ -6,6 +6,11 @@ plugins {
 
 android {
     compileSdk 31
+    
+    sourceSets.main {
+        jniLibs.srcDir 'libs'
+        //disable automatic ndk-build call
+    }
 
     defaultConfig {
         applicationId "js.personal.webrtc_android"
@@ -23,6 +28,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -39,6 +50,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:16.0.4'
 
     implementation files('libs/libjingle_peerconnection.jar')
+    implementation files('libs/base_java.jar')
+
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'com.google.android.material:material:1.4.0'
