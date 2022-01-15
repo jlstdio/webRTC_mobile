@@ -64,7 +64,7 @@ final class SignalingClient {
   
   func send(candidate rtcIceCandidate: RTCIceCandidate, to person: String) {
     do {
-      let dataMessage = try self.encoder.encode(IceCandidate(from: rtcIceCandidate))
+        let dataMessage = try self.encoder.encode(IceCandidate(from: rtcIceCandidate as! Decoder))
       let dict = try JSONSerialization.jsonObject(with: dataMessage, options: .allowFragments) as! [String: Any]
       Firestore.firestore()
         .collection(person)
