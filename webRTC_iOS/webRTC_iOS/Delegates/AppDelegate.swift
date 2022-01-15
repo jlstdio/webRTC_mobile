@@ -18,9 +18,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Firestore allows offline mode by default.
         // but I experimented an error when data that I deleted on Firestore still be returned on listener
         // so I will turn off offline to resolve this problem
-        let settings = FirestoreSettings()
-        settings.isPersistenceEnabled = false
-        Firestore.firestore().settings = settings
+//        let settings = FirestoreSettings()
+//        settings.isPersistenceEnabled = false
+//        Firestore.firestore().settings = settings
         return true
     }
 

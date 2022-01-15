@@ -27,6 +27,7 @@ final class SignalingClient {
   }
   
   func deleteSdpAndCandidate(for person: String) {
+      
     Firestore.firestore().collection(person).document("sdp").delete() { err in
       if let err = err {
         print("Error removing firestore sdp: \(err)")
