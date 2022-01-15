@@ -1,63 +1,37 @@
 package js.personal.webrtc_android
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.firebase.database.*
 import js.personal.webrtc_android.databinding.ActivityMainBinding
-import org.json.JSONException
-import org.json.JSONObject
 import org.webrtc.*
 import org.webrtc.PeerConnection.*
-import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.util.ArrayList
 import java.util.HashMap
 
 class MainActivity : AppCompatActivity() {
-    private var isInitiator = false
-    private var isChannelReady = false
-    private var isStarted = false
-    private val send: Button? = null
-    private val text: EditText? = null
 
-    var audioConstraints: MediaConstraints? = null
-    var videoConstraints: MediaConstraints? = null
-    var sdpConstraints: MediaConstraints? = null
-    var videoSource: VideoSource? = null
-    var localVideoTrack: VideoTrack? = null
-    var audioSource: AudioSource? = null
-    var localAudioTrack: AudioTrack? = null
-    var surfaceTextureHelper: SurfaceTextureHelper? = null
-
-    private lateinit var binding: ActivityMainBinding
-
+    private var audioConstraints: MediaConstraints? = null
+    private var audioSource: AudioSource? = null
+    private var localAudioTrack: AudioTrack? = null
     private var peerConnection: PeerConnection? = null
     private lateinit var rootEglBase: EglBase
     private var factory: PeerConnectionFactory? = null
     private lateinit var videoTrackFromCamera: VideoTrack
 
-    var me: String? = null
-    var opposite: String? = null
+    private lateinit var binding: ActivityMainBinding
+    
+    private lateinit var me: String
+    private lateinit var opposite: String
 
-    lateinit var dataChannel: DataChannel
+    private lateinit var dataChannel: DataChannel
 
-    val permissions = listOf(
-        Manifest.permission.CAMERA,
-        Manifest.permission.RECORD_AUDIO
-    )
-
-    var firebaseDatabase = FirebaseDatabase.getInstance()
-    var databaseReference = firebaseDatabase.reference
+    private var firebaseDatabase = FirebaseDatabase.getInstance()
+    private var databaseReference = firebaseDatabase.reference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,27 +41,29 @@ class MainActivity : AppCompatActivity() {
         start()
 
         binding.onReady.setOnClickListener {
-            me = binding.me.getText().toString()
-            opposite = binding.opposite.getText().toString()
+            me = binding.me.text.toString()
+            opposite = binding.opposite.text.toString()
             SignalClient()
         }
 
         binding.offer.setOnClickListener {
-            doCall()
+            Offer()
         }
 
         binding.answer.setOnClickListener {
-            doAnswer()
+            Answer()
         }
 
         binding.send.setOnClickListener {
-            val buff: String = binding.data.getText().toString()
+            val buff: String = binding.data.text.toString()
             sendData(buff)
         }
     }
 
     override fun onDestroy() {
 
+        databaseReference.child("webRTC").child(me).removeValue()
+        databaseReference.child("webRTC").child(opposite).removeValue()
         super.onDestroy()
     }
 
@@ -100,7 +76,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun SignalClient() {
-        databaseReference.child("webRTC").child(me!!).child("sdp")
+        databaseReference.child("webRTC").child(me).child("sdp")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val type = snapshot.child("type").getValue(String::class.java)
@@ -108,22 +84,21 @@ class MainActivity : AppCompatActivity() {
                     if (type != null && sdp != null) {
                         if (type == "answer") {
                             peerConnection!!.setRemoteDescription(
-                                SimpleSdpObserver(),
+                                SdpObserver(),
                                 SessionDescription(SessionDescription.Type.ANSWER, sdp)
                             )
                         } else if (type == "offer") {
                             peerConnection!!.setRemoteDescription(
-                                SimpleSdpObserver(),
+                                SdpObserver(),
                                 SessionDescription(SessionDescription.Type.OFFER, sdp)
-                            ) // implemented
-                            //doAnswer();
+                            )
                         }
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {}
             })
-        databaseReference.child("webRTC").child(me!!).child("candidates")
+        databaseReference.child("webRTC").child(me).child("candidates")
             .addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                     Log.d(TAG, "connectToSignallingServer: receiving candidates")
@@ -145,40 +120,26 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
-    private fun doAnswer() {
-        peerConnection!!.createAnswer(object : SimpleSdpObserver() {
+    private fun Answer() {
+        peerConnection!!.createAnswer(object : SdpObserver() {
             override fun onCreateSuccess(p0: SessionDescription) {
                 super.onCreateSuccess(p0)
 
-                peerConnection!!.setLocalDescription(SimpleSdpObserver(), p0)
-                val message = JSONObject()
+                peerConnection!!.setLocalDescription(SdpObserver(), p0)
                 val map = HashMap<String, String>()
                 try {
-                    message.put("type", "answer")
-                    message.put("sdp", p0.description)
                     map["type"] = "answer"
                     map["sdp"] = p0.description
-                    databaseReference.child("webRTC").child(opposite!!).child("sdp").setValue(map)
+                    databaseReference.child("webRTC").child(opposite).child("sdp").setValue(map)
 
-                    //sendMessage(message);
-                } catch (e: JSONException) {
-                    e.printStackTrace()
+                } catch (e: Exception) {
+
                 }
             }
         }, MediaConstraints())
     }
 
-    private fun maybeStart() {
-        Log.d(TAG, "maybeStart: $isStarted $isChannelReady")
-        if (!isStarted && isChannelReady) {
-            isStarted = true
-            if (isInitiator) {
-                doCall()
-            }
-        }
-    }
-
-    private fun doCall() {
+    private fun Offer() {
         val sdpMediaConstraints = MediaConstraints()
         sdpMediaConstraints.mandatory.add(
             MediaConstraints.KeyValuePair(
@@ -192,35 +153,29 @@ class MainActivity : AppCompatActivity() {
                 "true"
             )
         )
-        peerConnection!!.createOffer(object : SimpleSdpObserver() {
+        peerConnection!!.createOffer(object : SdpObserver() {
             override fun onCreateSuccess(p0: SessionDescription) {
                 super.onCreateSuccess(p0)
 
                 Log.d(TAG, "onCreateSuccess: ")
-                peerConnection!!.setLocalDescription(SimpleSdpObserver(), p0)
-                val message = JSONObject()
+                peerConnection!!.setLocalDescription(SdpObserver(), p0)
                 val map = HashMap<String, String>()
                 try {
-                    message.put("type", "offer")
-                    message.put("sdp", p0.description)
                     map["type"] = "offer"
                     map["sdp"] = p0.description
-                    databaseReference.child("webRTC").child(opposite!!).child("sdp").setValue(map)
+                    databaseReference.child("webRTC").child(opposite).child("sdp").setValue(map)
 
-                    //sendMessage(message);
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
+                } catch (e: Exception) { }
             }
         }, sdpMediaConstraints)
     }
 
     private fun initializeSurfaceViews() {
         rootEglBase = EglBase.create()
-        binding.surfaceView.init(rootEglBase.getEglBaseContext(), null)
+        binding.surfaceView.init(rootEglBase.eglBaseContext, null)
         binding.surfaceView.setEnableHardwareScaler(true)
         binding.surfaceView.setMirror(true)
-        binding.surfaceView2.init(rootEglBase.getEglBaseContext(), null)
+        binding.surfaceView2.init(rootEglBase.eglBaseContext, null)
         binding.surfaceView2.setEnableHardwareScaler(true)
         binding.surfaceView2.setMirror(true)
 
@@ -231,8 +186,8 @@ class MainActivity : AppCompatActivity() {
         PeerConnectionFactory.initializeAndroidGlobals(this, true, true, true)
         factory = PeerConnectionFactory(null)
         factory!!.setVideoHwAccelerationOptions(
-            rootEglBase!!.eglBaseContext,
-            rootEglBase!!.eglBaseContext
+            rootEglBase.eglBaseContext,
+            rootEglBase.eglBaseContext
         )
     }
 
@@ -268,14 +223,14 @@ class MainActivity : AppCompatActivity() {
                 val command = String(bytes)
                 //Toast.makeText(getBaseContext(), "incoming2 : " + command, Toast.LENGTH_SHORT).show();
                 Log.d("test", command)
-                Toast.makeText(this, "We don't check permissions, go to setting if it doesn't work", Toast.LENGTH_LONG).show()
+                //Toast.makeText(this, "We don't check permissions, go to setting if it doesn't work", Toast.LENGTH_LONG).show()
             }
         })
     }
 
-    fun sendData(data: String) {
+    private fun sendData(data: String) {
         val buffer = ByteBuffer.wrap(data.toByteArray())
-        dataChannel!!.send(DataChannel.Buffer(buffer, false))
+        dataChannel.send(DataChannel.Buffer(buffer, false))
     }
 
     private fun startStreamingVideo() {
@@ -312,26 +267,15 @@ class MainActivity : AppCompatActivity() {
 
             override fun onIceCandidate(iceCandidate: IceCandidate) {
                 Log.d(TAG, "onIceCandidate: ")
-                val message = JSONObject()
                 val map = HashMap<String, String>()
                 try {
-                    message.put("type", "candidate")
-                    message.put("label", iceCandidate.sdpMLineIndex)
-                    message.put("id", iceCandidate.sdpMid)
-                    message.put("candidate", iceCandidate.sdp)
-                    map["sdpMLineIndex"] = Integer.toString(iceCandidate.sdpMLineIndex)
+                    map["sdpMLineIndex"] = iceCandidate.sdpMLineIndex.toString()
                     map["sdpMid"] = iceCandidate.sdpMid
                     map["sdp"] = iceCandidate.sdp
-                    Log.d(
-                        TAG,
-                        "onIceCandidate: sending candidate $message"
-                    )
-                    databaseReference.child("webRTC").child(opposite!!).child("candidates").push()
-                        .setValue(map)
+                    Log.d(TAG, "onIceCandidate: sending candidate")
+                    databaseReference.child("webRTC").child(opposite).child("candidates").push().setValue(map)
+                } catch (e: Exception) {
 
-                    //sendMessage(message);
-                } catch (e: JSONException) {
-                    e.printStackTrace()
                 }
             }
 
@@ -353,10 +297,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onDataChannel(dataChannel: DataChannel) {
-                var dataChannel = dataChannel
                 Log.d(TAG, "onDataChannel: ")
-                dataChannel = dataChannel
-                val channelName = dataChannel.label()
                 dataChannel.registerObserver(object : DataChannel.Observer {
                     override fun onBufferedAmountChange(l: Long) {}
                     override fun onStateChange() {}
@@ -382,8 +323,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createVideoCapturer(): VideoCapturer? {
-        val videoCapturer: VideoCapturer?
-        videoCapturer = if (useCamera2()) {
+        val videoCapturer: VideoCapturer? = if (useCamera2()) {
             createCameraCapturer(Camera2Enumerator(this))
         } else {
             createCameraCapturer(Camera1Enumerator(true))
@@ -418,7 +358,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CompleteActivity"
-        private const val RC_CALL = 111
         const val VIDEO_TRACK_ID = "ARDAMSv0"
         const val VIDEO_RESOLUTION_WIDTH = 1280
         const val VIDEO_RESOLUTION_HEIGHT = 720
