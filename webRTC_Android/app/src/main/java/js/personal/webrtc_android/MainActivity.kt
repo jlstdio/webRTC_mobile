@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-       // checkPermissions()
+        Toast.makeText(this, "We don't check permissions, go to setting if it doesn't work", Toast.LENGTH_LONG).show()
         start()
 
         binding.onReady.setOnClickListener {
@@ -89,41 +89,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
 
         super.onDestroy()
-    }
-
-    private fun checkPermissions() {
-        //거절되었거나 아직 수락하지 않은 권한(퍼미션)을 저장할 문자열 배열 리스트
-        var rejectedPermissionList = ArrayList<String>()
-
-        //필요한 퍼미션들을 하나씩 끄집어내서 현재 권한을 받았는지 체크
-        for(permission in permissions){
-            if(ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                //만약 권한이 없다면 rejectedPermissionList에 추가
-                rejectedPermissionList.add(permission)
-            }
-        }
-        //거절된 퍼미션이 있다면... 권한 요청
-        if(rejectedPermissionList.isNotEmpty()){
-            val array = arrayOfNulls<String>(rejectedPermissionList.size)
-            ActivityCompat.requestPermissions(this, rejectedPermissionList.toArray(array), 89)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 89) {
-            if(grantResults.isNotEmpty()) {
-                for((i, permission) in permissions.withIndex()) {
-                    if(grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                        Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
-                        finishAffinity()
-                    }
-                }
-            }
-            else {
-                //start()
-            }
-        }
     }
 
     private fun start() {
@@ -303,6 +268,7 @@ class MainActivity : AppCompatActivity() {
                 val command = String(bytes)
                 //Toast.makeText(getBaseContext(), "incoming2 : " + command, Toast.LENGTH_SHORT).show();
                 Log.d("test", command)
+                Toast.makeText(this, "We don't check permissions, go to setting if it doesn't work", Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -400,7 +366,7 @@ class MainActivity : AppCompatActivity() {
                         data[bytes]
                         val command = String(bytes)
                         Toast.makeText(
-                            applicationContext,
+                            this@MainActivity,
                             "incoming : $command",
                             Toast.LENGTH_SHORT
                         ).show()
