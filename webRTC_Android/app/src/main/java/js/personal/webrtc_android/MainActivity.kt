@@ -221,11 +221,14 @@ class MainActivity : AppCompatActivity() {
                 val bytes = ByteArray(data.remaining())
                 data[bytes]
                 val command = String(bytes)
-                //Toast.makeText(getBaseContext(), "incoming2 : " + command, Toast.LENGTH_SHORT).show();
                 Log.d("test", command)
-                //Toast.makeText(this, "We don't check permissions, go to setting if it doesn't work", Toast.LENGTH_LONG).show()
+                makeToast(command)
             }
         })
+    }
+
+    private fun makeToast(str: String) {
+        Toast.makeText(this, "received date : " + str, Toast.LENGTH_LONG).show()
     }
 
     private fun sendData(data: String) {
