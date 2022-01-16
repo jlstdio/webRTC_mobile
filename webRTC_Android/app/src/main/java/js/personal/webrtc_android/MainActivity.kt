@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var videoTrackFromCamera: VideoTrack
 
     private lateinit var binding: ActivityMainBinding
-    
+
     private lateinit var me: String
     private lateinit var opposite: String
 

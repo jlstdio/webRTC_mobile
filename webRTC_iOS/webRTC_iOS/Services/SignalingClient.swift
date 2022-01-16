@@ -18,32 +18,29 @@ protocol SignalClientDelegate: AnyObject {
 }
 
 final class SignalingClient {
-  private let decoder = JSONDecoder()
-  private let encoder = JSONEncoder()
-  weak var delegate: SignalClientDelegate?
-  
-  init() {
-
-  }
-  
-  func deleteSdpAndCandidate(for person: String) {
-      
-    Firestore.firestore().collection(person).document("sdp").delete() { err in
-      if let err = err {
-        print("Error removing firestore sdp: \(err)")
-      } else {
-        print("Firestore sdp successfully removed!")
-      }
-    }
+    private let decoder = JSONDecoder()
+    private let encoder = JSONEncoder()
+    weak var delegate: SignalClientDelegate?
+    let ref = Database.database().reference()
     
-    Firestore.firestore().collection(person).document("candidate").delete() { err in
-      if let err = err {
-        print("Error removing firestore candidate: \(err)")
-      } else {
-        print("Firestore candidate successfully removed!")
+    func deleteSdpAndCandidate(for person: String) {
+        
+      Firestore.firestore().collection(person).document("sdp").delete() { err in
+        if let err = err {
+          print("Error removing firestore sdp: \(err)")
+        } else {
+          print("Firestore sdp successfully removed!")
+        }
       }
-    }
-  }
+      
+      Firestore.firestore().collection(person).document("candidate").delete() { err in
+        if let err = err {
+          print("Error removing firestore candidate: \(err)")
+        } else {
+          print("Firestore candidate successfully removed!")
+        }
+      }
+}
 
   func send(sdp rtcSdp: RTCSessionDescription, to person: String) {
     do {
