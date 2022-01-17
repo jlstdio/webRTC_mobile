@@ -79,7 +79,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func Abort(_ sender: Any) {
-        self.signalClient.deleteSdpAndCandidate(for: self.currentPerson)
+        self.signalClient.deleteSdpAndCandidate(for: self.currentPerson, for: self.oppositePerson)
         self.webRTCClient.closePeerConnection()
         self.webRTCClient.createPeerConnection()
     }
