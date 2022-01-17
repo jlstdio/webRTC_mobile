@@ -8,6 +8,7 @@ target 'webRTC_iOS' do
   pod 'Firebase/Core'
   pod 'Firebase/Firestore'
   pod 'Firebase/Crashlytics'
+  pod 'Firebase/Database'
 
   # Pods for webRTC_iOS
 
