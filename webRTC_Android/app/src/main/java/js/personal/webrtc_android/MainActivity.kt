@@ -222,7 +222,7 @@ class MainActivity : AppCompatActivity() {
                 data[bytes]
                 val command = String(bytes)
                 Log.d("test", command)
-                makeToast(command)
+                //makeToast(command)
             }
         })
     }
